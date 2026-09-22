@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Purchase Prediction & Analytics Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --accent-hover: #0284c7;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        body {
+            padding: 15px;
+        }
+
+        /* Header Styling */
+        .header {
+            text-align: center;
+            margin: 10px 0 25px 0;
+            padding: 0 10px;
+        }
+
+        .header h1 {
+            font-size: clamp(1.4rem, 4vw, 2.2rem);
+            color: var(--accent-color);
+            margin-bottom: 8px;
+            word-wrap: break-word;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: clamp(0.85rem, 2vw, 1rem);
+        }
+
+        /* Main Container Layout */
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard-container {
+                display: grid;
+                grid-template-columns: 360px 1fr;
+                align-items: start;
+            }
+        }
+
+        /* Card Container */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        /* Responsive Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            width: 100%;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* Prevents input overflow */
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        input, select {
+            width: 100%;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 10px;
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.85rem;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-color);
+        }
+
+        button {
+            grid-column: span 2;
+            background-color: var(--accent-color);
+            color: #0f172a;
+            font-weight: 700;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Output Box */
+        #result {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            display: none;
+            word-break: break-all;
+        }
+
+        /* Graph Gallery Layout */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+            width: 100%;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .chart-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .chart-card h4 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .chart-card img {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 6px;
+            background: #ffffff;
+            padding: 4px;
+        }
+
+        /* Fullscreen Image Preview */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+
+        .modal img {
+            max-width: 95%;
+            max-height: 90vh;
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 8px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>⚡ EV Purchase Prediction Dashboard</h1>
+    <p>Machine Learning Model Inference & Exploratory Data Analysis</p>
+</div>
+
+<div class="dashboard-container">
+
+    <!-- Input Form Section -->
+    <div class="card">
+        <div class="card-title">Customer Input Parameters</div>
+        <form id="predictionForm" class="form-grid">
+
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="Age" required placeholder="62">
+            </div>
+
+            <div class="form-group">
+                <label>Income (USD)</label>
+                <input type="number" id="Annual_Income_USD" required placeholder="10000">
+            </div>
+
+            <div class="form-group">
+                <label>Commute (km)</label>
+                <input type="number" step="0.1" id="Daily_Commute_km" required placeholder="3">
+            </div>
+
+            <div class="form-group">
+                <label>Cars Owned</label>
+                <input type="number" id="Number_of_Cars_Owned" required placeholder="2">
+            </div>
+
+            <div class="form-group">
+                <label>Home Stations</label>
+                <input type="number" id="Charging_Stations_Near_Home" required placeholder="3">
+            </div>
+
+            <div class="form-group">
+                <label>Work Stations</label>
+                <input type="number" id="Charging_Stations_Near_Work" required placeholder="4">
+            </div>
+
+            <div class="form-group full-width">
+                <label>Environmental Concern Level</label>
+                <input type="number" step="0.1" id="Environmental_Concern_Level" required placeholder="2">
+            </div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select id="Gender">
+                    <option>Male</option>
+                    <option>Female</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>City Type</label>
+                <select id="City_Type">
+                    <option>Urban</option>
+                    <option>Suburban</option>
+                    <option>Rural</option>
+                </select>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Current Car Type</label>
+                <select id="Current_Car_Type" required>
+                    <option value="">Select Type</option>
+                    <option value="Sedan">Sedan</option>
+                    <option value="SUV">SUV</option>
+                    <option value="Hatchback">Hatchback</option>
+                    <option value="Truck">Truck</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Home Charging</label>
+                <select id="Home_Charging_Possible">
+                    <option>Yes</option>
+                    <option>No</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Subsidy</label>
+                <select id="Subsidy_Available">
+                    <option>Yes</option>
+                    <option>No</option>
+                </select>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Range Anxiety Level</label>
+                <select id="Range_Anxiety_Level">
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                </select>
+            </div>
+
+            <button type="submit">Run Prediction</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <!-- Data Graphs Section -->
+    <div class="card">
+        <div class="card-title">Model Analytics & Exploratory Data Analysis</div>
+        <div class="charts-grid">
+
+            <div class="chart-card" onclick="openModal('../Visual_Graph/confusion_matrix.png')">
+                <h4>1. Confusion Matrix</h4>
+                <img src="../Visual_Graph/confusion_matrix.png" alt="Confusion Matrix">
+            </div>
+
+            <div class="chart-card" onclick="openModal('../Visual_Graph/salary_wise.png')">
+                <h4>2. EV Buyers by Salary Range</h4>
+                <img src="../Visual_Graph/salary_wise.png" alt="EV Buyers by Salary">
+            </div>
+
+            <div class="chart-card" onclick="openModal('../Visual_Graph/ev_buyers_age_wise.png')">
+                <h4>3. EV Buyers by Age Range</h4>
+                <img src="../Visual_Graph/ev_buyers_age_wise.png" alt="EV Buyers by Age">
+            </div>
+
+            <div class="chart-card" onclick="openModal('../Visual_Graph/correlation_heatmap.png')">
+                <h4>4. Correlation Heatmap</h4>
+                <img src="../Visual_Graph/correlation_heatmap.png" alt="Correlation Heatmap">
+            </div>
+
+            <div class="chart-card" onclick="openModal('../Visual_Graph/class_distribution.png')">
+                <h4>5. Class Distribution</h4>
+                <img src="../Visual_Graph/class_distribution.png" alt="Class Distribution">
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal Viewer -->
+<div id="imgModal" class="modal" onclick="this.style.display='none'">
+    <img id="modalImg" src="" alt="Full View">
+</div>
+
+<script>
+document.getElementById("predictionForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.style.display = "block";
+    resultDiv.innerHTML = "Processing prediction...";
+
+    const data = {
+        id: 6,
+        Age: Number(document.getElementById("Age").value),
+        Annual_Income_USD: Number(document.getElementById("Annual_Income_USD").value),
+        Daily_Commute_km: Number(document.getElementById("Daily_Commute_km").value),
+        Number_of_Cars_Owned: Number(document.getElementById("Number_of_Cars_Owned").value),
+        Charging_Stations_Near_Home: Number(document.getElementById("Charging_Stations_Near_Home").value),
+        Charging_Stations_Near_Work: Number(document.getElementById("Charging_Stations_Near_Work").value),
+        Environmental_Concern_Level: Number(document.getElementById("Environmental_Concern_Level").value),
+        Gender: document.getElementById("Gender").value,
+        City_Type: document.getElementById("City_Type").value,
+        Current_Car_Type: document.getElementById("Current_Car_Type").value,
+        Home_Charging_Possible: document.getElementById("Home_Charging_Possible").value,
+        Subsidy_Available: document.getElementById("Subsidy_Available").value,
+        Range_Anxiety_Level: document.getElementById("Range_Anxiety_Level").value
+    };
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        resultDiv.innerHTML = `<strong style="color: var(--accent-color);">Prediction Result:</strong><pre style="margin-top: 5px;">${JSON.stringify(result, null, 2)}</pre>`;
+    } catch (error) {
+        resultDiv.innerHTML = `<span style="color: #ef4444;">Error: FastAPI Server se connect nahi ho paya.</span>`;
+    }
+});
+
+function openModal(imgSrc) {
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("modalImg");
+    modalImg.src = imgSrc;
+    modal.style.display = "flex";
+}
+</script>
+
+</body>
+</html>
