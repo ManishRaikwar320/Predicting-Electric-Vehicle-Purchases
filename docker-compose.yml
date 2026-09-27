@@ -4,12 +4,10 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend/models:/app/models
 
   frontend:
     build: ./frontend
     ports:
-      - "3000:80"
+      - "3000:3000"
     depends_on:
       - backend

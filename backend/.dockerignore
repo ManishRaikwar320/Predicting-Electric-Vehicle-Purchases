@@ -1,5 +1,5 @@
 test_data/
-models/
+models/model.joblib
 Data/
 __pycache__
 *.pyc

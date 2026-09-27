@@ -27,7 +27,7 @@ class Predict_EV_Buy:
 
     def __init__(self):
 
-        self.model = joblib.load("./models/model.joblib")
+        self.model = joblib.load("./models/lite_model.joblib")
         self.scaler = joblib.load("./models/scaler.joblib")
 
     def predict(self, input_data: InputData):
